@@ -212,3 +212,71 @@ Returns all column names and their data types as a list.
 | 50|  null|unknown|
 +---+------+-------+
 ```
+### filter(condition)
+>Filters rows using the given condition.
+>where() is an alias for filter().
+```python
+>>> df.filter(df.age > 3).collect()
+[Row(age=5, name=u'Bob')]
+>>> df.where(df.age == 2).collect()
+[Row(age=2, name=u'Alice')]
+```
+```python
+>>> df.filter("age > 3").collect()
+[Row(age=5, name=u'Bob')]
+>>> df.where("age = 2").collect()
+[Row(age=2, name=u'Alice')]
+```
+### first()
+> Returns the first row as a Row.
+```python
+>>> df.first()
+Row(age=2, name=u'Alice')
+```
+### foreach(f)
+> Applies the f function to all Row of this DataFrame.
+> This is a shorthand for df.rdd.foreach().
+```python
+>>> def f(person):
+...     print(person.name)
+>>> df.foreach(f)
+```
+### foreachPartition(f)
+> Applies the f function to each partition of this DataFrame.
+> This a shorthand for df.rdd.foreachPartition().
+```python
+>>> def f(people):
+        for person in people:
+...         print(person.name)
+>>> df.foreachPartition(f)
+```
+### groupBy(*cols)
+> Groups the DataFrame using the specified columns, so we can run aggregation on them. See GroupedData for all the available aggregate functions.
+
+> groupby() is an alias for groupBy().
+
+>Parameters:	cols – list of columns to group by. Each element should be a column name (string) or an expression (Column).
+```python
+>>> df.groupBy().avg().collect()
+[Row(avg(age)=3.5)]
+>>> sorted(df.groupBy(df.name).agg({"age":"mean"}).collect())
+[Row(name=u'Alice', avg(age)=2.0), Row(name=u'Bob', avg(age)=5.0)]
+>>> sorted(df.groupBy(df.name).avg().collect())
+[Row(name=u'Alice', avg(age)=2.0), Row(name=u'Bob', avg(age)=5.0)]
+>>> sorted(df.groupBy(["name",df.age]).count().collect())
+[Row(name=u'Alice', age=2, count=1), Row(name=u'Bob', age=5, count=1)]
+```
+
+### head(n=None)
+> Returns the first n rows.
+
+> Note that this method should only be used if the resulting array is expected to be small, as all the data is loaded into the driver’s memory.
+
+> Parameters:	n – int, default 1. Number of rows to return.
+> Returns:	If n is greater than 1, return a list of Row. If n is 1, return a single Row.
+```python
+>>> df.head()
+Row(age=2, name=u'Alice')
+>>> df.head(1)
+[Row(age=2, name=u'Alice')]
+```
